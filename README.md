@@ -1,2 +1,1 @@
-# stm32
-# stm32
+# This crap is gonna be my Ba. project))
