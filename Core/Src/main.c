@@ -67,17 +67,6 @@ static void MX_TIM17_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void measure(void);
-
-/* USER CODE END 0 */
-
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void)
-{
-  /* USER CODE BEGIN 1 */
   uint16_t tim_val_ms; 			// tick is 0.1ms
 //  uint16_t tim_begin_ms;
 //  uint16_t tim_end_ms;
@@ -85,6 +74,7 @@ int main(void)
 //	uint16_t tim_v_off;
 
   uint16_t sensor_data[100000];
+
   uint32_t i = 0;
   uint32_t j;
 
@@ -94,6 +84,20 @@ int main(void)
 
   uint16_t edge;
   uint16_t pulses;
+  uint32_t htime;
+  uint16_t t_rl;
+
+  void measure(void);
+  void analyse(void);
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+  /* USER CODE BEGIN 1 */
 
 
   /* USER CODE END 1 */
@@ -121,13 +125,12 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM16_Init();
   MX_TIM17_Init();
-
   /* USER CODE BEGIN 2 */
 
   /* __SAMPLE ROUTIN BEGIN__ */
 
 //  HAL_TIM_Base_Start(&htim16); 								// start tim16
-//  tim_begin_ms = __HAL_TIM_GET_COUNTER(&htim16); 			// get first number of tim16
+////  tim_begin_ms = __HAL_TIM_GET_COUNTER(&htim16); 			// get first number of tim16
 //  while (tim_val_ms < 10000-1) 								// with presc of 9600 it is exactly 1 sec
 //  {
 //	HAL_GPIO_WritePin(GPIOE , GPIO_PIN_1, GPIO_PIN_SET);
@@ -140,8 +143,8 @@ int main(void)
 //	i++;
 //  }
 //  HAL_GPIO_WritePin(GPIOE , GPIO_PIN_1, GPIO_PIN_RESET);
-//  tim_end_ms = __HAL_TIM_GET_COUNTER(&htim16);
-//  uart_buf_len = sprintf(uart_buf, "%u ms Ende %u ms i =  %d \r\n",  tim_begin_ms, tim_end_ms, i );
+////  tim_end_ms = __HAL_TIM_GET_COUNTER(&htim16);
+////  uart_buf_len = sprintf(uart_buf, "%u ms Ende %u ms i =  %d \r\n",  tim_begin_ms, tim_end_ms, i );
 //  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
 //  /* Transmit an array with data via uart */
 //  for (j=0; j < i; j++){
@@ -156,28 +159,33 @@ int main(void)
 
   /* __STEPPER CONTROL BLOCK BEGIN__ */
   /* see also STEPPER_cfg.h */
-//  STEPPERS_Init_TMR(&htim17);								// nötig für init
+//  STEPPERS_Init_TMR(&htim17);								// nötig für init look also ISR CODE BEGIN 4
 //  STEPPER_SetSpeed(STEPPER_MOTOR1, 12); 					// set RPM
-//  STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 25, DIR_CCW); 	// drive motor, steps, direction(immer verkehrt k.a. warum)
+//  STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 250, DIR_CW); 	// drive motor, steps, direction(immer verkehrt k.a. warum)
   /* __STEPPER CONTROL BLOCK END__ */
 
-  /* __VIBRATIONSMOTOR PA4__ */
-//  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
-//  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+  /* __VIBRATIONSMOTOR PA4__ PG12 */
+//  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_SET);
+//  HAL_Delay(2000);
+//  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_RESET);
 
-  /* __PUMPE PA1__ */
-//  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET);
-//  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);
+  /* __PUMPE PA1__ PA5 */
+//  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+//  HAL_Delay(2000);
+//  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+//  HAL_Delay(2000);
+//  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
 
+  /*__TEST_LED___*/
+  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_RESET);
   /* ACTOREN/SENSOREN CHECK END */
 
   /* test area */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET); 		// Pumpe
-  HAL_Delay(1500);
+//  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET); 		// Pumpe
+//  HAL_Delay(1500);
 
-  HAL_TIM_Base_Start(&htim16); 								// start tim16
-  //tim_begin_ms = __HAL_TIM_GET_COUNTER(&htim16); 			// get first number of tim16
-  measure();
+//  HAL_TIM_Base_Start(&htim16); 								// start tim16
+//  tim_begin_ms = __HAL_TIM_GET_COUNTER(&htim16); 			// get first number of tim16
 
 //  while (tim_val_ms < 10000-1) 								// with presc of 9600 it is exactly 1 sec
 //  {
@@ -201,19 +209,33 @@ int main(void)
 //	sensor_data[i] = raw;
 //	i++;
 //  }
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET); 		// Pumpe
-  HAL_GPIO_WritePin(GPIOE , GPIO_PIN_1, GPIO_PIN_RESET); 		// LED
-  tim_end_ms = __HAL_TIM_GET_COUNTER(&htim16);
+//  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET); 		// Pumpe
+//  HAL_GPIO_WritePin(GPIOE , GPIO_PIN_1, GPIO_PIN_RESET); 		// LED
+//  tim_end_ms = __HAL_TIM_GET_COUNTER(&htim16);
 //  uart_buf_len = sprintf(uart_buf, "%u ms Ende %u ms i =  %d \r\n",  tim_begin_ms, tim_end_ms, i );
 //  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
+
+  measure();
   /* Transmit an array with data via uart */
   for (j=0; j < i; j++){
-	  uart_buf_len = sprintf(uart_buf, "%d, %u \r\n", j, sensor_data[j]);
+	  uart_buf_len = sprintf(uart_buf, "%lu, %u \r\n", j, sensor_data[j]);
 	  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
   }
 
+  analyse();
 
+  uart_buf_len = sprintf(uart_buf, "Digital \n");
+  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
 
+  for (j=0; j < i; j++){
+	  uart_buf_len = sprintf(uart_buf, "%lu, %u \r\n", j, sensor_data[j]);
+	  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
+  }
+
+  uart_buf_len = sprintf(uart_buf, "htime = %lu pulses = %u  \r\n", htime, pulses);
+  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
+
+  rotate();
 //  HAL_Delay(1500);
 //  STEPPERS_Init_TMR(&htim17);								// nötig für init
 //  STEPPER_SetSpeed(STEPPER_MOTOR1, 11); 					// set RPM
@@ -231,10 +253,6 @@ int main(void)
   }
   /* USER CODE END 3 */
 }
-//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
-//{
-//	STEPPER_TMR_OVF_ISR(htim);
-//}
 
 /**
   * @brief System Clock Configuration
@@ -353,7 +371,7 @@ static void MX_ADC1_Init(void)
 
   /** Configure Regular Channel
   */
-  sConfig.Channel = ADC_CHANNEL_16;
+  sConfig.Channel = ADC_CHANNEL_15;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
@@ -518,24 +536,24 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
-  __HAL_RCC_GPIOE_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_FS_PWR_EN_GPIO_Port, USB_FS_PWR_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1|GPIO_PIN_4, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|GPIO_PIN_6, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_13|GPIO_PIN_14|LD2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9|GPIO_PIN_12|GPIO_PIN_14, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -550,19 +568,26 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(USB_FS_PWR_EN_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA1 PA4 */
-  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_4;
+  /*Configure GPIO pin : PA5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD1_Pin LD3_Pin */
-  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin;
+  /*Configure GPIO pins : LD1_Pin LD3_Pin PB6 */
+  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|GPIO_PIN_6;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PE13 PE14 LD2_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_13|GPIO_PIN_14|LD2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pin : USB_FS_OVCR_Pin */
   GPIO_InitStruct.Pin = USB_FS_OVCR_Pin;
@@ -591,32 +616,32 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PD4 PD5 PD6 PD7 */
-  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
+  /*Configure GPIO pins : PG9 PG12 PG14 */
+  GPIO_InitStruct.Pin = GPIO_PIN_9|GPIO_PIN_12|GPIO_PIN_14;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : LD2_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
 }
 
 /* USER CODE BEGIN 4 */
+//calling an ISR for STEPPER
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+ {
+ 	STEPPER_TMR_OVF_ISR(htim);
+ }
+
 void measure(void){
+  HAL_TIM_Base_Start(&htim16); 								// start tim16
   while (tim_val_ms < 10000-1) 								// with presc of 9600 it is exactly 1 sec
   {
-	HAL_GPIO_WritePin(GPIOE , GPIO_PIN_1, GPIO_PIN_SET); 	// LED yellow
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); // vibrator
+	HAL_GPIO_WritePin(GPIOG , GPIO_PIN_9, GPIO_PIN_SET); 	// LED yellow
+	HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_RESET); // vibrator
 	tim_val_ms = __HAL_TIM_GET_COUNTER(&htim16);
 
-	if (tim_val_ms >= 2000-1 && tim_val_ms <= 4000-1){
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); // vibrator on
+	if (tim_val_ms >= 2000-1 && tim_val_ms <= 3000-1){
+		HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_SET); // vibrator on
 
 //		HAL_ADC_Start(&hadc1);
 //		HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
@@ -631,31 +656,32 @@ void measure(void){
 	sensor_data[i] = raw;
 	i++;
   }
+	HAL_GPIO_WritePin(GPIOG , GPIO_PIN_9, GPIO_PIN_RESET); 	// LED yellow
 }
-
+//
 void analyse(void){
 	// digitalize signal v:[0,1]
-	for (int k = 0; k <= i; k++) {
-		if (sensor_data[k] < 39718){  		//aprox. 2V
-			sensor_data[k] = 0;
+	for (j = 0; j <= i; j++) {
+		if (sensor_data[j] < 39718){  		//aprox. 2V
+			sensor_data[j] = 0;
 		}
 		else{
-			sensor_data[k] = 1;
+			sensor_data[j] = 1;
 		}
 	}
 	// count pulses
-	for (int l = 0; l <= k; l++){
-		edge = sensor_data[l+1] - sensor_data[l];
+	for (j = 0; j <= i; j++){
+		edge = sensor_data[j+1] - sensor_data[j];
 		if (edge == 1){ 					// count only negative pulses
 			pulses++;
 		}
-		if (sensor_data[l] == 1){
+		if (sensor_data[j] == 1){
 			htime++;
 		}
 	}
 	//find on ratio
-	t_rl = htime * 1/i;
-	on_ration = t_rl/1000;
+//	t_rl = htime * 1/i;
+//	on_ration = t_rl/1000;
 
 }
 
