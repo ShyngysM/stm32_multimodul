@@ -6,7 +6,7 @@ df_MCU = pd.DataFrame(data_MCU)
 
 last_x = df_MCU[0].iloc[-1]
 
-time = (df_MCU[0]*1000/last_x)
+time = (df_MCU[0]*1000/(last_x+1))
 voltage = (df_MCU[1]*3.3/2**16)
 
 # calculate time axis

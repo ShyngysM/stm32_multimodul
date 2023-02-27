@@ -24,6 +24,7 @@
 #include "../../ECUAL/STEPPER/STEPPER.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -86,6 +87,9 @@ static void MX_TIM17_Init(void);
   uint16_t pulses;
   uint32_t htime;
   uint16_t t_rl;
+  uint32_t begin_vibr;
+
+  bool bad;
 
   void measure(void);
   void analyse(void);
@@ -161,7 +165,7 @@ int main(void)
   /* see also STEPPER_cfg.h */
 //  STEPPERS_Init_TMR(&htim17);								// nötig für init look also ISR CODE BEGIN 4
 //  STEPPER_SetSpeed(STEPPER_MOTOR1, 12); 					// set RPM
-//  STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 250, DIR_CW); 	// drive motor, steps, direction(immer verkehrt k.a. warum)
+//  STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 1048, DIR_CCW); 	// drive motor, steps, direction(immer verkehrt k.a. warum)
   /* __STEPPER CONTROL BLOCK END__ */
 
   /* __VIBRATIONSMOTOR PA4__ PG12 */
@@ -177,65 +181,69 @@ int main(void)
 //  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
 
   /*__TEST_LED___*/
-  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_RESET);
+//  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_RESET);
   /* ACTOREN/SENSOREN CHECK END */
 
   /* test area */
+//  don't forget to init timer16 for counting 1 sec and timer17 with ISR for Stepper
+
 //  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET); 		// Pumpe
 //  HAL_Delay(1500);
 
-//  HAL_TIM_Base_Start(&htim16); 								// start tim16
-//  tim_begin_ms = __HAL_TIM_GET_COUNTER(&htim16); 			// get first number of tim16
-
-//  while (tim_val_ms < 10000-1) 								// with presc of 9600 it is exactly 1 sec
-//  {
-//	HAL_GPIO_WritePin(GPIOE , GPIO_PIN_1, GPIO_PIN_SET); 	// LED yellow
-//	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); // vibrator
-//	tim_val_ms = __HAL_TIM_GET_COUNTER(&htim16);
-//
-//	if (tim_val_ms >= 2000-1 && tim_val_ms <= 4000-1){
-//		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); // vibrator on
-//
-//		HAL_ADC_Start(&hadc1);
-//		HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-//		raw = HAL_ADC_GetValue(&hadc1);
-//		sensor_data[i] = raw;
-//		i++;
-//	}
-//
-//	HAL_ADC_Start(&hadc1);
-//	HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-//	raw = HAL_ADC_GetValue(&hadc1);
-//	sensor_data[i] = raw;
-//	i++;
-//  }
-//  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET); 		// Pumpe
-//  HAL_GPIO_WritePin(GPIOE , GPIO_PIN_1, GPIO_PIN_RESET); 		// LED
-//  tim_end_ms = __HAL_TIM_GET_COUNTER(&htim16);
-//  uart_buf_len = sprintf(uart_buf, "%u ms Ende %u ms i =  %d \r\n",  tim_begin_ms, tim_end_ms, i );
-//  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
+//start
+  STEPPERS_Init_TMR(&htim17);								// nötig für init look also ISR CODE BEGIN 4
+  STEPPER_SetSpeed(STEPPER_MOTOR1, 12); 					// set RPM
 
   measure();
   /* Transmit an array with data via uart */
-  for (j=0; j < i; j++){
-	  uart_buf_len = sprintf(uart_buf, "%lu, %u \r\n", j, sensor_data[j]);
-	  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
-  }
+//  for (j=0; j < i; j++){
+//	  uart_buf_len = sprintf(uart_buf, "%lu, %u \r\n", j, sensor_data[j]);
+//	  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
+//  }
 
   analyse();
 
-  uart_buf_len = sprintf(uart_buf, "Digital \n");
+//  uart_buf_len = sprintf(uart_buf, "Digital \n");
+//  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
+
+//  for (j=0; j < i; j++){
+//	  uart_buf_len = sprintf(uart_buf, "%lu, %u \r\n", j, sensor_data[j]);
+//	  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
+//  }
+
+  uart_buf_len = sprintf(uart_buf, "htime = %lu pulses = %u bad state = %d vibr = %lu  \r\n", htime, pulses, bad, begin_vibr);
   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
 
-  for (j=0; j < i; j++){
-	  uart_buf_len = sprintf(uart_buf, "%lu, %u \r\n", j, sensor_data[j]);
+  if (bad == false && pulses >= 5){
+	  STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 1048, DIR_CW); 	// rotate 180
+	  HAL_Delay(2000);
+	  measure();
+	  analyse();
+
+	  uart_buf_len = sprintf(uart_buf, "htime2 = %lu pulses2 = %u bad state = %d vibr = %lu  \r\n", htime, pulses, bad, begin_vibr);
 	  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
+
+	  if (bad == false && pulses >= 5){
+		  STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 262, DIR_CCW);		//rotate -45 (262CCW) && pumpe aus
+		  HAL_Delay(2000);
+		  STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 786, DIR_CCW);		//rotate to 0 -> 1048 -262
+	  }
+	  else{
+		  STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 262, DIR_CW);		//rotate +45 && pumpe aus
+		  HAL_Delay(2000);
+		  STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 786, DIR_CW);		//rotate to 360 -> 180 + 45 = 225 need +135
+	  }
+  }
+  else{
+	  STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 1048, DIR_CW); 	// rotate 180
+	  HAL_Delay(2000);
+	  STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 262, DIR_CW);		//rotate +45 && pumpe aus
+	  HAL_Delay(2000);
+	  STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 786, DIR_CW); 	// rotate 180
   }
 
-  uart_buf_len = sprintf(uart_buf, "htime = %lu pulses = %u  \r\n", htime, pulses);
-  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
 
-  rotate();
+
 //  HAL_Delay(1500);
 //  STEPPERS_Init_TMR(&htim17);								// nötig für init
 //  STEPPER_SetSpeed(STEPPER_MOTOR1, 11); 					// set RPM
@@ -634,15 +642,20 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 
 void measure(void){
   HAL_TIM_Base_Start(&htim16); 								// start tim16
+//  HAL_TIM_RE
+  i = 0;
   while (tim_val_ms < 10000-1) 								// with presc of 9600 it is exactly 1 sec
   {
 	HAL_GPIO_WritePin(GPIOG , GPIO_PIN_9, GPIO_PIN_SET); 	// LED yellow
 	HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_RESET); // vibrator
 	tim_val_ms = __HAL_TIM_GET_COUNTER(&htim16);
 
+	if (tim_val_ms == 2000-1){
+		begin_vibr = i;										// saving time of begin vibration
+	}
 	if (tim_val_ms >= 2000-1 && tim_val_ms <= 3000-1){
 		HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_SET); // vibrator on
-
+//		TODO check if it is working without next 2 lines -> plot oszi and mcu compare
 //		HAL_ADC_Start(&hadc1);
 //		HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
 		raw = HAL_ADC_GetValue(&hadc1);
@@ -679,11 +692,33 @@ void analyse(void){
 			htime++;
 		}
 	}
+	// check if sensor been open before vibration
+	bad = false;
+	for (j = 0; j <= begin_vibr; j++){
+		if (sensor_data[j] == 0){
+			bad = true;
+			break;
+		}
+//		else{
+//			bad = false;
+//		}
+	}
+	// check if sensor been open after vibration + Einschwingungszeit
+	for (j = begin_vibr + 36500; j<=i; j++){
+		if (sensor_data[j] == 0 ){
+			bad = true;
+			break;
+		}
+//		else{
+//			bad = false;
+//		}
+	}
 	//find on ratio
 //	t_rl = htime * 1/i;
-//	on_ration = t_rl/1000;
-
+//	on_ratio = t_rl/1000;
 }
+
+
 
 /* USER CODE END 4 */
 
