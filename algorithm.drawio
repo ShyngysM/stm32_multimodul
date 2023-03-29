@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2023-03-28T10:56:01.361Z" agent="5.0 (X11)" etag="DxpAMrf_ab9R3gPf7dAe" version="20.8.23" type="github">
+<mxfile host="app.diagrams.net" modified="2023-03-29T11:39:51.107Z" agent="Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/111.0" etag="ZU7HVCuV-Ys2i0ttRzOy" version="21.1.1" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="989" dy="574" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1434" dy="832" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
@@ -93,7 +93,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="OYuoTdjRCr1aVx-3H9GQ-32" value="Rotieren um 180°" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+        <mxCell id="OYuoTdjRCr1aVx-3H9GQ-32" value="Rotieren zu 0°" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="340" y="820" width="120" height="40" as="geometry" />
         </mxCell>
         <mxCell id="OYuoTdjRCr1aVx-3H9GQ-41" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="OYuoTdjRCr1aVx-3H9GQ-39" target="WIyWlLk6GJQsqaUBKTNV-3" edge="1">
@@ -120,10 +120,10 @@
         <mxCell id="OYuoTdjRCr1aVx-3H9GQ-44" value="Rotieren zu 0°" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="500" y="740" width="120" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="kSGya9n5sp85JiRcv-Qz-1" value="Daten senden" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+        <mxCell id="kSGya9n5sp85JiRcv-Qz-1" value="Daten senden" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="340" y="260" width="120" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="kSGya9n5sp85JiRcv-Qz-3" value="Daten senden" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+        <mxCell id="kSGya9n5sp85JiRcv-Qz-3" value="Daten senden" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="340" y="600" width="120" height="40" as="geometry" />
         </mxCell>
       </root>
