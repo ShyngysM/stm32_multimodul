@@ -9,3 +9,11 @@ VIBRATOR: PA4 (output)
 #STEPPER:
 	OUTPUTS: 	PD4 	PD5 	PD6 	PD7
 	TIM17
+
+
+
+# TODO:
+  - 10 tests with plots
+  - test an algorithm
+  - counter reset
+
