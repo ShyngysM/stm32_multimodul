@@ -68,35 +68,24 @@ static void MX_TIM17_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint16_t tim_val_ms = 0; // tick is 0.1ms
-                         //  uint16_t tim_begin_ms;
-                         //  uint16_t tim_end_ms;
-                         //	uint16_t tim_v_on;
-                         //	uint16_t tim_v_off;
 
-uint16_t sensor_data[100000];
-const uint32_t TRIGGER = 39718; // aprox. 2V die Triggerungsgrenze
+//  uint16_t tim_begin_ms;
 
-uint32_t i;
-uint32_t j;
+struct MeasureData {
+  uint16_t signal[100000];
+  int t_vibr_start;
+  int t_end;
+  int pulses;
+  int htime;
+  bool bad;
+} Meas;
 
-char uart_buf[50]; // 50 char buffer to store our message
+// 50 char buffer to store our message
+char uart_buf[50];
 int uart_buf_len;
-uint16_t raw; // store our 16bit ADC reading
 
-uint16_t edge;
-uint16_t pulses;
-uint32_t htime;
-uint16_t t_rl;
-uint32_t vibr_begin;
-uint32_t vibr_end;
-bool is_vibrating = false;
-const uint32_t END_VIBR = 36500; // end of vibration + Einschwingungszeit
-
-bool bad;
-
-void measure(void);
-void analyse(void);
+void measure(struct MeasureData *);
+void analyse(struct MeasureData *);
 /* USER CODE END 0 */
 
 /**
@@ -115,6 +104,7 @@ int main(void) {
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+  // HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_RESET);
 
   /* USER CODE END Init */
 
@@ -134,106 +124,63 @@ int main(void) {
   MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
 
-  /* __SAMPLE ROUTIN BEGIN__ */
-
-  //  HAL_TIM_Base_Start(&htim16);
-  //  // start tim16
-  ////  tim_begin_ms = __HAL_TIM_GET_COUNTER(&htim16); 			// get
-  /// first number of tim16
-  //  while (tim_val_ms < 10000-1)
-  //  // with presc of 9600 it is exactly 1 sec
-  //  {
-  //	HAL_GPIO_WritePin(GPIOE , GPIO_PIN_1, GPIO_PIN_SET);
-  //	tim_val_ms = __HAL_TIM_GET_COUNTER(&htim16);
-  //
-  //	HAL_ADC_Start(&hadc1);
-  //	HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-  //	raw = HAL_ADC_GetValue(&hadc1);
-  //	sensor_data[i] = raw;
-  //	i++;
-  //  }
-  //  HAL_GPIO_WritePin(GPIOE , GPIO_PIN_1, GPIO_PIN_RESET);
-  ////  tim_end_ms = __HAL_TIM_GET_COUNTER(&htim16);
-  ////  uart_buf_len = sprintf(uart_buf, "%u ms Ende %u ms i =  %d \r\n",
-  /// tim_begin_ms, tim_end_ms, i );
-  //  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
-  //  /* Transmit an array with data via uart */
-  //  for (j=0; j < i; j++){
-  //	  uart_buf_len = sprintf(uart_buf, "%d, %u \r\n", j, sensor_data[j]);
-  //	  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len , 100);
-  //  }
-
-  /* __SAMPLE ROUTIN END__ */
-
-  /* ACTOREN/SENSOREN CHECK BEGIN */
-
   /* __STEPPER CONTROL BLOCK BEGIN__ */
+
   /* see also STEPPER_cfg.h */
   //  STEPPERS_Init_TMR(&htim17);
-  //  // nötig für init look also ISR CODE BEGIN 4
+  // nötig für init look also ISR CODE BEGIN 4
   //  STEPPER_SetSpeed(STEPPER_MOTOR1, 12);
-  //  // set RPM STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 1048, DIR_CCW);
-  //  // drive motor, steps, direction(immer verkehrt k.a. warum)
+  // set RPM STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 1048, DIR_CCW);
+  // drive motor, steps, direction(immer verkehrt k.a. warum)
+
   /* __STEPPER CONTROL BLOCK END__ */
-
-  /* __VIBRATIONSMOTOR PA4__ PG12 */
-  //  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_SET);
-  //  HAL_Delay(2000);
-  //  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_RESET);
-
-  /* __PUMPE PA1__ PA5 */
-  //  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-  //  HAL_Delay(2000);
-  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-  //  HAL_Delay(2000);
-  //  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-
-  /*__TEST_LED___*/
-  //  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_RESET);
-  /* ACTOREN/SENSOREN CHECK END */
 
   /* test area */
   //  don't forget to init timer16 for counting 1 sec and timer17 with ISR for
   //  Stepper
 
+  /////////////////START/////////////////////////
   // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET); // Pumpe
   //  HAL_Delay(1500);
 
-  // start
   STEPPERS_Init_TMR(&htim17); // nötig für init look also ISR CODE BEGIN 4
   STEPPER_SetSpeed(STEPPER_MOTOR1, 14); // set RPM
 
   // STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 1048, DIR_CW); // rotate 180
   // HAL_Delay(4000);
-  measure();
-  /* Transmit an array with data via uart */
-  // for (j = 0; j < i; j++) {
-  //   uart_buf_len = sprintf(uart_buf, "%lu, %u \r\n", j, sensor_data[j]);
-  //   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-  // }
 
-  analyse();
-  // HAL_Delay(4000);
-  // STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 1048, DIR_CCW); // rotate 180
+  for (int i = 0; i < 1; i++) {
 
-  // uart_buf_len = sprintf(uart_buf, "Digital \n");
-  // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    measure(&Meas);
 
-  // for (j = 0; j < i; j++) {
-  //   uart_buf_len = sprintf(uart_buf, "%lu, %u \r\n", j, sensor_data[j]);
-  //   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-  // }
+    /* Transmit an array with ANALOG data via uart */
+    for (int j = 0; j < Meas.t_end; j++) {
+      uart_buf_len = sprintf(uart_buf, "%d, %u \r\n", j, Meas.signal[j]);
+      HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    }
 
-  uart_buf_len = sprintf(uart_buf, "Measurements \n");
-  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    analyse(&Meas);
+    // STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 1048, DIR_CCW); // rotate 180
 
-  uart_buf_len =
-      sprintf(uart_buf, "htime = %lu; pulses = %u;   \r\n", htime, pulses);
-  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    /* Transmit an array with DIGITAL data via uart */
+    uart_buf_len = sprintf(uart_buf, "Digital \n");
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    for (int j = 0; j < Meas.t_end; j++) {
+      uart_buf_len = sprintf(uart_buf, "%d, %u \r\n", j, Meas.signal[j]);
+      HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    }
 
-  uart_buf_len =
-      sprintf(uart_buf, "bad state = %d; vibr = %lu  \r\n", bad, vibr_begin);
-  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    /* Transmit extra measurement data via uart */
+    uart_buf_len = sprintf(uart_buf, "Measurements \n");
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    uart_buf_len = sprintf(uart_buf, "htime = %d ms; pulses = %d;   \r\n",
+                           Meas.htime, Meas.pulses);
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    uart_buf_len = sprintf(uart_buf, "bad state = %d; vibr = %d ms \r\n",
+                           Meas.bad, Meas.t_vibr_start);
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+  }
+  //
   // if (bad == false && pulses >= 5){
   //  STEPPER_Step_NonBlocking(STEPPER_MOTOR1, 1048, DIR_CW); 	// rotate 180
   //  HAL_Delay(2000);
@@ -557,17 +504,19 @@ static void MX_GPIO_Init(void) {
   HAL_GPIO_WritePin(USB_FS_PWR_EN_GPIO_Port, USB_FS_PWR_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(pump_GPIO_Port, pump_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LD1_Pin | LD3_Pin | GPIO_PIN_6, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LD1_Pin | LD3_Pin | stepper_1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_13 | GPIO_PIN_14 | LD2_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9 | GPIO_PIN_12 | GPIO_PIN_14,
+  HAL_GPIO_WritePin(GPIOE, stepper_3_Pin | stepper_4_Pin | LD2_Pin,
                     GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(
+      GPIOG, help_signal_ONESEC_Pin | vibration_motor_Pin | stepper_2_Pin,
+      GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -582,22 +531,22 @@ static void MX_GPIO_Init(void) {
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(USB_FS_PWR_EN_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PA5 */
-  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  /*Configure GPIO pin : pump_Pin */
+  GPIO_InitStruct.Pin = pump_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(pump_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD1_Pin LD3_Pin PB6 */
-  GPIO_InitStruct.Pin = LD1_Pin | LD3_Pin | GPIO_PIN_6;
+  /*Configure GPIO pins : LD1_Pin LD3_Pin stepper_1_Pin */
+  GPIO_InitStruct.Pin = LD1_Pin | LD3_Pin | stepper_1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PE13 PE14 LD2_Pin */
-  GPIO_InitStruct.Pin = GPIO_PIN_13 | GPIO_PIN_14 | LD2_Pin;
+  /*Configure GPIO pins : stepper_3_Pin stepper_4_Pin LD2_Pin */
+  GPIO_InitStruct.Pin = stepper_3_Pin | stepper_4_Pin | LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -630,8 +579,10 @@ static void MX_GPIO_Init(void) {
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PG9 PG12 PG14 */
-  GPIO_InitStruct.Pin = GPIO_PIN_9 | GPIO_PIN_12 | GPIO_PIN_14;
+  /*Configure GPIO pins : help_signal_ONESEC_Pin vibration_motor_Pin
+   * stepper_2_Pin */
+  GPIO_InitStruct.Pin =
+      help_signal_ONESEC_Pin | vibration_motor_Pin | stepper_2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -644,74 +595,89 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   STEPPER_TMR_OVF_ISR(htim);
 }
 
-void measure(void) {
-  i = 0;
-  is_vibrating = false;
-  HAL_TIM_Base_Start(&htim16); // start tim16
-  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9,
-                    GPIO_PIN_SET); // set help signal (yellow led)
+void measure(struct MeasureData *s) {
+  const int ONESEC = 10000 - 1;
+  // store our counter value
+  int tim_val_ms = 0; // tick is 0.1 ms
 
-  while (tim_val_ms < 10000 - 1) // with presc of 9600 it is exactly 1 sec
-  {
+  bool is_vibrating = false;
+  // store our 16bit ADC reading
+  uint16_t raw;
+  // starting timer 16
+  HAL_TIM_Base_Start(&htim16);
+  // set help signal (yellow led)
+  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_SET);
 
-    if (!is_vibrating && tim_val_ms >= 2000 - 1) {
+  for (int i = 0; tim_val_ms < ONESEC; i++) {
+
+    if (!is_vibrating && tim_val_ms >= ONESEC * 0.2) {
       HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_SET); // vibrator ON
-      vibr_begin = i; // saving time of begin vibration
+      // saving time of begin vibration
+      s->t_vibr_start = i;
       is_vibrating = true;
-
-    } else if (is_vibrating && tim_val_ms >= 3000 - 1) {
+    } else if (is_vibrating && tim_val_ms >= ONESEC * 0.3) {
       HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_RESET); // vibrator OFF
-      vibr_end = i; // saving time of end vibration
     }
 
+    // ADC routine
     HAL_ADC_Start(&hadc1);
     HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
     raw = HAL_ADC_GetValue(&hadc1);
-    sensor_data[i] = raw;
-    i++;
+    // needed to save the last iterator i
+    s->t_end = i;
+    // remember the last element of array will be 0, the counter will be
+    // increased but array not filled
+    s->signal[i] = raw;
     tim_val_ms = __HAL_TIM_GET_COUNTER(&htim16);
   }
-  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_RESET); // LED yellow
+  // reset help signal (yellow led)
+  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_RESET);
+  // stoping timer 16
   HAL_TIM_Base_Stop_IT(&htim16);
+  // reseting timer 16
   __HAL_TIM_SET_COUNTER(&htim16, 0);
 }
 
-void analyse(void) {
+void analyse(struct MeasureData *s) {
   // digitalize signal v:[0,1]
-  for (j = 0; j < i; j++) {
-    if (sensor_data[j] < TRIGGER) { // aprox. 2V
-      sensor_data[j] = 0;
+  const int TRIGGER = 39718;
+  const int SCALE = 1000;
+
+  for (int i = 0; i < s->t_end; i++) {
+    if (s->signal[i] < TRIGGER) { // aprox. 2V TODO change it to 1V
+      s->signal[i] = 0;
     } else {
-      sensor_data[j] = 1;
+      s->signal[i] = 1;
     }
   }
   // count pulses
-  for (j = 0; j < i; j++) {
-    edge = sensor_data[j + 1] - sensor_data[j];
+  for (int i = 0; i < s->t_end; i++) {
+    int edge = s->signal[i + 1] - s->signal[i];
     if (edge == 1) { // count only negative pulses
-      pulses++;
+      s->pulses++;
     }
-    if (sensor_data[j] == 1) {
-      htime++;
+    if (s->signal[i] == 1) {
+      s->htime++;
     }
   }
   // check if sensor has been open before vibration
-  bad = false;
-  for (j = 0; j <= vibr_begin; j++) {
-    if (sensor_data[j] == 0) {
-      bad = true;
+  s->bad = false;
+  for (int i = 0; i <= s->t_vibr_start; i++) {
+    if (s->signal[i] == 0) {
+      s->bad = true;
       break;
     }
   }
-  // check if sensor been open after vibration + Einschwingungszeit
-  for (j = (uint32_t)(i * 0.75); j < i; j++) {
-    if (sensor_data[j] == 0) {
-      bad = true;
+  // check if sensor has been open after vibration + Einschwingungszeit
+  for (int i = (int)(s->t_end * 0.75); i < s->t_end; i++) {
+    if (s->signal[i] == 0) {
+      s->bad = true;
       break;
     }
   }
   // find on ratio
-  // t_rl = htime * 1/i;
+  s->htime = s->htime * SCALE / s->t_end;
+  s->t_vibr_start = s->t_vibr_start * SCALE / s->t_end;
   // on_ratio = t_rl/1000;
 }
 

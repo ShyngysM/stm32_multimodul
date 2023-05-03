@@ -69,8 +69,16 @@ void Error_Handler(void);
 #define PH0_MCU_GPIO_Port GPIOH
 #define PH1_MCU_Pin GPIO_PIN_1
 #define PH1_MCU_GPIO_Port GPIOH
+#define sensor_analog_read_Pin GPIO_PIN_3
+#define sensor_analog_read_GPIO_Port GPIOA
+#define pump_Pin GPIO_PIN_5
+#define pump_GPIO_Port GPIOA
 #define LD1_Pin GPIO_PIN_0
 #define LD1_GPIO_Port GPIOB
+#define stepper_3_Pin GPIO_PIN_13
+#define stepper_3_GPIO_Port GPIOE
+#define stepper_4_Pin GPIO_PIN_14
+#define stepper_4_GPIO_Port GPIOE
 #define LD3_Pin GPIO_PIN_14
 #define LD3_GPIO_Port GPIOB
 #define STLINK_RX_Pin GPIO_PIN_8
@@ -87,6 +95,14 @@ void Error_Handler(void);
 #define USB_FS_N_GPIO_Port GPIOA
 #define USB_FS_P_Pin GPIO_PIN_12
 #define USB_FS_P_GPIO_Port GPIOA
+#define help_signal_ONESEC_Pin GPIO_PIN_9
+#define help_signal_ONESEC_GPIO_Port GPIOG
+#define vibration_motor_Pin GPIO_PIN_12
+#define vibration_motor_GPIO_Port GPIOG
+#define stepper_2_Pin GPIO_PIN_14
+#define stepper_2_GPIO_Port GPIOG
+#define stepper_1_Pin GPIO_PIN_6
+#define stepper_1_GPIO_Port GPIOB
 #define LD2_Pin GPIO_PIN_1
 #define LD2_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */
