@@ -1,2 +1,0 @@
-htime = 59028 pulses = 16   
-bad state = 1 vibr = 11867  
