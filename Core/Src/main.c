@@ -105,7 +105,6 @@ int main(void) {
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  // HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_RESET);
 
   /* USER CODE END Init */
 
@@ -616,11 +615,11 @@ void measure(struct MeasureData *s) {
 
 void analyse(struct MeasureData *s) {
   // digitalize signal v:[0,1]
-  const int TRIGGER = 39718;
+  const int TRIGGER = 26589; // approx. 1V
   const int SCALE = 1000;
 
   for (int i = 0; i < s->t_end; i++) {
-    if (s->signal[i] < TRIGGER) { // aprox. 2V TODO change it to 1V
+    if (s->signal[i] < TRIGGER) {
       s->signal[i] = 0;
     } else {
       s->signal[i] = 1;
@@ -644,7 +643,7 @@ void analyse(struct MeasureData *s) {
       break;
     }
   }
-  // check if sensor has been open after vibration + Einschwingungszeit
+  // check if sensor has been open after 750 ms
   for (int i = (int)(s->t_end * 0.75); i < s->t_end; i++) {
     if (s->signal[i] == 0) {
       s->bad = true;
