@@ -116,7 +116,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     PA0     ------> ADC1_INP16
     PA3     ------> ADC1_INP15
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_0|sensor_analog_read_Pin;
+    GPIO_InitStruct.Pin = GPIO_PIN_0|ANALOG_READ_PA3_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -148,7 +148,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     PA0     ------> ADC1_INP16
     PA3     ------> ADC1_INP15
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_0|sensor_analog_read_Pin);
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_0|ANALOG_READ_PA3_Pin);
 
   /* USER CODE BEGIN ADC1_MspDeInit 1 */
 

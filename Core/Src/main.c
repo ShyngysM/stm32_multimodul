@@ -578,7 +578,7 @@ void measure(struct MeasureData *s) {
   // store our 16bit ADC reading
   uint16_t raw;
   // starting timer 16
-  HAL_TIM_Base_Start(&htim16);
+  HAL_TIM_Base_Snart(&htim16);
   // set help signal (yellow led)
   HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_SET);
 
