@@ -53,8 +53,8 @@
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c:2736:13:HAL_ADC_ConvHalfCpltCallback	16	static
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c:2751:13:HAL_ADC_LevelOutOfWindowCallback	16	static
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c:2773:13:HAL_ADC_ErrorCallback	16	static
-../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c:2819:19:HAL_ADC_ConfigChannel	144	static
-../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c:3133:19:HAL_ADC_AnalogWDGConfig	88	static
+../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c:2819:19:HAL_ADC_ConfigChannel	144	static,ignoring_inline_asm
+../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c:3133:19:HAL_ADC_AnalogWDGConfig	88	static,ignoring_inline_asm
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c:3495:10:HAL_ADC_GetState	16	static
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c:3509:10:HAL_ADC_GetError	16	static
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c:3539:19:ADC_ConversionStop	40	static
