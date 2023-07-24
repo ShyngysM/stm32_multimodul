@@ -46,7 +46,7 @@ for i in range(len(seps_numb.index)):
     info = meas_df.iloc[0,0] + "\n" + meas_df.iloc[1,0]
     # plt.figtext(0.7, 0.17, info, ha="center", fontsize=7, bbox={"facecolor":"orange", "alpha":0.5, "pad":5})
     fig, axs = plt.subplots(1,1)
-    axs.plot(time, voltage, color="blue", label="plot"+ i+1 + "meas" + i + "\n" +info)
+    axs.plot(time, voltage, color="blue", label="plot"+ str(i+1) + "meas" + str(i) + "\n" +info)
     axs.set_xlabel("t in [ms]")
     axs.set_ylabel("U in [V]")
     axs.legend(loc=4)

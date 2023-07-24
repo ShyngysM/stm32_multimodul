@@ -147,23 +147,30 @@ int main(void)
   // STEPPER_SetSpeed(STEPPER_MOTOR1, 14); // set RPM
 
   // pump on
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-  HAL_Delay(4000);
-  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_SET);
-  HAL_Delay(100);
-  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_RESET);
+  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+  // HAL_Delay(3000);
+  //
+  // HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_SET);
+  // HAL_Delay(100);
+  // HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_RESET);
+  
 
-  // for (int m = 0; m < 10; m++) {
-  //   uart_buf_len = sprintf(uart_buf, "Number %d \r\n", m+1);
-  //   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-    // measure(&Meas);
-  //   uart_transmit_analog();
-  //   analyse(&Meas);
-  //   // uart_transmit_digital();
-  //   uart_transmit_info();
-  // }
+  for (int m = 0; m < 10; m++) {
+  // pump on
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+    HAL_Delay(4000);
+    uart_buf_len = sprintf(uart_buf, "Number %d \r\n", m+1);
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    measure(&Meas);
+  // pump on
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+    uart_transmit_analog();
+    analyse(&Meas);
+    // uart_transmit_digital();
+    uart_transmit_info();
+  }
 
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
 
   // if (Meas.bad == false && Meas.pulses >= SENSITIVITY) {
   //   // rotate 180

@@ -1,0 +1,15 @@
+main.c:95:5:main	2
+main.c:229:6:SystemClock_Config	4
+main.c:296:13:MX_ADC1_Init	4
+main.c:364:13:MX_TIM16_Init	2
+main.c:396:13:MX_TIM17_Init	2
+main.c:428:13:MX_USART3_UART_Init	5
+main.c:476:13:MX_USB_OTG_HS_USB_Init	1
+main.c:497:13:MX_GPIO_Init	1
+main.c:598:6:HAL_TIM_PeriodElapsedCallback	1
+main.c:602:6:measure	7
+main.c:648:6:analyse	11
+main.c:695:6:uart_transmit_analog	2
+main.c:702:6:uart_transmit_digital	2
+main.c:711:6:uart_transmit_info	1
+main.c:729:6:Error_Handler	1
