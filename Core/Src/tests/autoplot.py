@@ -36,7 +36,10 @@ for i in range(len(seps_numb.index)):
     mvs_meas = df_mcu.iloc[seps_meas.index[i]+1: seps_numb.index[i],:]
     meas_arr.append(mvs_meas)
 
-for i in range(len(seps_numb.index)):
+sig_arr.insert(0, mvs1_sig)
+meas_arr.insert(9, mvs10_meas)
+
+for i in range(len(seps_numb.index)+1):
     analog_df = sig_arr[i]
     last_analog = df_mcu.iloc[seps_meas.index[i]-1].astype(int)
     time = (analog_df[0]*SCALE/(last_analog[0]+1))
@@ -46,7 +49,7 @@ for i in range(len(seps_numb.index)):
     info = meas_df.iloc[0,0] + "\n" + meas_df.iloc[1,0]
     # plt.figtext(0.7, 0.17, info, ha="center", fontsize=7, bbox={"facecolor":"orange", "alpha":0.5, "pad":5})
     fig, axs = plt.subplots(1,1)
-    axs.plot(time, voltage, color="blue", label="plot"+ str(i+1) + "meas" + str(i) + "\n" +info)
+    axs.plot(time, voltage, color="blue", label="plot"+ str(i) + "meas" + str(i) + "\n" +info)
     axs.set_xlabel("t in [ms]")
     axs.set_ylabel("U in [V]")
     axs.legend(loc=4)
