@@ -6,50 +6,49 @@ import numpy as np
 SCALE = 1000
 ADC_RES = 2**16
 REF_VOLTAGE = 3.3
-sig_arr = []
-meas_arr = []
-fig = []
+signals = []
+measurements = []
+FILE = 'Kupferkugel_Dauertest/mvs5_dt.txt'
 
 
 #### DATA PREPARATION #### 
-data_MCU = pd.read_csv('Stahlkugel/mvs1.csv',sep=',',header=None, skiprows=1)          
-
-df_mcu = pd.DataFrame(data_MCU)                                        
+raw_data = pd.read_csv(FILE ,sep=',',header=None, skiprows=1)          
+df = pd.DataFrame(raw_data)                                        
 
 # create separators to split the dataframe by keywords
+seps_meas = df[df.astype(str).iloc[:,0].str.contains("Meas")]
+seps_numb = df[df.astype(str).iloc[:,0].str.contains("Numb")]
 
-seps_meas = df_mcu[df_mcu.astype(str).iloc[:,0].str.contains("Meas")]
-seps_numb = df_mcu[df_mcu.astype(str).iloc[:,0].str.contains("Numb")]
-
-# TODO
-# delete all Number cause it work even without it:)
-# try it with regex in python, mb but if no time just with vim regex
-
-mvs1_sig = df_mcu.iloc[:seps_meas.index[0],:].astype(int)
-mvs10_meas = df_mcu.iloc[seps_meas.index[9]+1: ,:]
+mvs1_sig = df.iloc[:seps_meas.index[0],:].astype(int)
+mvs10_meas = df.iloc[seps_meas.index[9]+1: ,:]
 
 for i in range(len(seps_numb.index)):
-    # TODO Insertion google it
-    # sig_arr[0] = mvs1_sig
-    mvs_sig = df_mcu.iloc[seps_numb.index[i]+1:seps_meas.index[i+1],:].astype(int)
-    sig_arr.append(mvs_sig)
-    mvs_meas = df_mcu.iloc[seps_meas.index[i]+1: seps_numb.index[i],:]
-    meas_arr.append(mvs_meas)
+    mvs_sig = df.iloc[seps_numb.index[i]+1:seps_meas.index[i+1],:].astype(int)
+    signals.append(mvs_sig)
+    mvs_meas = df.iloc[seps_meas.index[i]+1: seps_numb.index[i],:]
+    measurements.append(mvs_meas)
 
-sig_arr.insert(0, mvs1_sig)
-meas_arr.insert(9, mvs10_meas)
+signals.insert(0, mvs1_sig)
+measurements.append(mvs10_meas)
 
+#### LOGS ####
+seps_bad = df[df.astype(str).iloc[:,0].str.contains("bad")]
+print(seps_bad)
+
+#### PLOTS ####
 for i in range(len(seps_numb.index)+1):
-    analog_df = sig_arr[i]
-    last_analog = df_mcu.iloc[seps_meas.index[i]-1].astype(int)
+# a bit of calculations, to have a human readable values
+    analog_df = signals[i]
+    last_analog = df.iloc[seps_meas.index[i]-1].astype(int)
     time = (analog_df[0]*SCALE/(last_analog[0]+1))
     voltage = (analog_df[1]*REF_VOLTAGE/ADC_RES)
 
-    meas_df = meas_arr[i]
+    meas_df = measurements[i]
     info = meas_df.iloc[0,0] + "\n" + meas_df.iloc[1,0]
-    # plt.figtext(0.7, 0.17, info, ha="center", fontsize=7, bbox={"facecolor":"orange", "alpha":0.5, "pad":5})
+
     fig, axs = plt.subplots(1,1)
-    axs.plot(time, voltage, color="blue", label="plot"+ str(i) + "meas" + str(i) + "\n" +info)
+    fig.suptitle(FILE + "\n" + "Measurement " + str(i+1))
+    axs.plot(time, voltage, color="blue", label="Measurements:" + "\n" + info)
     axs.set_xlabel("t in [ms]")
     axs.set_ylabel("U in [V]")
     axs.legend(loc=4)
